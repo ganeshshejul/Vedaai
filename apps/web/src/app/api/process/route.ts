@@ -64,12 +64,6 @@ const extractionSchema = {
 };
 
 
-const withTimeout = (promise: Promise<any>, ms: number) => {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
-    ]);
-};
 
 export async function POST(req: Request) {
   try {
@@ -113,20 +107,8 @@ Here is the Question Paper. Extract all the questions, their numbers, and their 
         }
     };
 
-    let response;
-    try {
-        console.log("Calling Gemini 3.1 Pro Preview...");
-        response = await withTimeout(
-            ai.models.generateContent({ model: 'gemini-3.1-pro-preview', ...requestOptions }),
-            60000 // 60s timeout
-        );
-    } catch (err: any) {
-        console.log(`[Gemini API] 3.1 Pro Preview failed (${err.message}). Falling back to gemini-3.7-flash...`);
-        response = await withTimeout(
-            ai.models.generateContent({ model: 'gemini-3.7-flash', ...requestOptions }),
-            60000 // 60s timeout
-        );
-    }
+    console.log("Calling Gemini 3.1 Pro Preview...");
+    const response = await ai.models.generateContent({ model: 'gemini-3.1-pro-preview', ...requestOptions });
 
     const outputText = response.text;
     console.log("Received Gemini Response.");
