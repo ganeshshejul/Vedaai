@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Upload, X, FileText } from "lucide-react";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useMappingStore } from "../store/mappingStore";
 
 export function UploadArea() {
@@ -25,13 +26,23 @@ export function UploadArea() {
 
   const onQpFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setQuestionPaper(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > 4.5 * 1024 * 1024) {
+        toast.error("File exceeds Vercel's 4.5MB limit.");
+        return;
+      }
+      setQuestionPaper(file);
     }
   };
 
   const onAsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setAnswerSheet(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > 4.5 * 1024 * 1024) {
+        toast.error("File exceeds Vercel's 4.5MB limit.");
+        return;
+      }
+      setAnswerSheet(file);
     }
   };
 
@@ -140,7 +151,7 @@ export function UploadArea() {
                   <div className="text-[20px] font-semibold text-[#303030]">
                     Upload <span className="text-[#FF5623]">Question Paper</span>
                   </div>
-                  <span className="text-sm text-gray-400 mt-1">Max 10MB</span>
+                  <span className="text-sm text-gray-400 mt-1">Max 4.5MB</span>
                 </div>
               </>
             ) : (
@@ -177,7 +188,7 @@ export function UploadArea() {
                   <div className="text-[20px] font-semibold text-[#303030]">
                     Upload <span className="text-[#FF5623]">Answer Sheet</span>
                   </div>
-                  <span className="text-sm text-gray-400 mt-1">Max 10MB</span>
+                  <span className="text-sm text-gray-400 mt-1">Max 4.5MB</span>
                 </div>
               </>
             ) : (
