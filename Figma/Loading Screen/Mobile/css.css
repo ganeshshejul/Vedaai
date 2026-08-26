@@ -1,0 +1,977 @@
+/* Loading state (phone) */
+
+position: relative;
+width: 393px;
+height: 853px;
+left: 6048px;
+top: 514px;
+
+/* Background/bg - Gradient */
+background: linear-gradient(180deg, #EEEEEE 0%, #DADADA 100%);
+
+
+/* Home Indicator */
+
+position: absolute;
+height: 1px;
+left: 0px;
+right: 0px;
+bottom: 0px;
+
+
+
+/* Frame 1984077862 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+position: absolute;
+width: 374px;
+height: 643px;
+left: calc(50% - 374px/2 - 0.5px);
+top: 186px;
+
+background: #FFFFFF;
+border-radius: 24px;
+
+
+/* AnalysingLoader */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 15px;
+
+width: 177px;
+height: 221.49px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 128.15px;
+height: 134.49px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+position: absolute;
+width: 128.15px;
+height: 134.49px;
+left: 0px;
+top: 0px;
+
+
+
+/* Frame 1984077954 */
+
+position: absolute;
+left: 9.75%;
+right: 0%;
+top: 0%;
+bottom: 0%;
+
+
+
+/* Vector 2 */
+
+position: absolute;
+left: 25.36%;
+right: 0%;
+top: 0%;
+bottom: 28.62%;
+
+box-shadow: inset 0px 0px 7.49957px #FFFFFF;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.36%;
+right: 0%;
+top: 0%;
+bottom: 28.62%;
+
+background: #FF5623;
+
+
+/* Vector 3 */
+
+position: absolute;
+left: 9.75%;
+right: 34.27%;
+top: 46.47%;
+bottom: 0%;
+
+box-shadow: inset 0px 0px 7.49957px #FFFFFF;
+
+
+/* Vector */
+
+position: absolute;
+left: 9.75%;
+right: 34.27%;
+top: 46.47%;
+bottom: 0%;
+
+background: #FF5623;
+
+
+/* Vector 4 */
+
+position: absolute;
+left: 70.22%;
+right: 7.38%;
+top: 62.27%;
+bottom: 16.32%;
+
+opacity: 0.52;
+box-shadow: inset 0px 0px 4.99971px #FFFFFF;
+
+
+/* Vector */
+
+position: absolute;
+left: 70.22%;
+right: 7.38%;
+top: 62.27%;
+bottom: 16.32%;
+
+background: #FF5623;
+
+
+/* Ellipse 18 */
+
+position: absolute;
+left: 13.65%;
+right: 76.59%;
+top: 35.32%;
+bottom: 55.39%;
+
+opacity: 0.83;
+box-shadow: inset 0px 0px 9.99943px rgba(255, 255, 255, 0.5);
+
+
+/* Vector */
+
+position: absolute;
+left: 13.65%;
+right: 76.59%;
+top: 35.32%;
+bottom: 55.39%;
+
+background: #FF5623;
+
+
+/* Frame 1984078042 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 177px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 159px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 159px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Extracting... */
+
+position: absolute;
+width: 157px;
+height: 36px;
+left: -0.13px;
+top: 0.13px;
+
+font-family: 'Bricolage Grotesque';
+font-style: normal;
+font-weight: 700;
+font-size: 30px;
+line-height: 36px;
+/* identical to box height, or 120% */
+letter-spacing: -1.2px;
+
+background: linear-gradient(90deg, #303030 20%, #606060 40%, #808080 50%, #606060 60%, #303030 80%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+text-fill-color: transparent;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 177px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* This may take a while */
+
+width: 177px;
+height: 36px;
+
+font-family: 'Bricolage Grotesque';
+font-style: normal;
+font-weight: 400;
+font-size: 20px;
+line-height: 36px;
+/* identical to box height, or 180% */
+text-align: center;
+letter-spacing: -1.2px;
+
+color: rgba(70, 70, 70, 0.75);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Address Bar iOS / X Chrome */
+
+position: absolute;
+width: 393px;
+height: 105px;
+left: calc(50% - 393px/2);
+top: 0px;
+
+
+
+/* Background */
+
+position: absolute;
+left: 0%;
+right: 0%;
+top: 0%;
+bottom: 0%;
+
+
+
+/* Background */
+
+position: absolute;
+left: 0%;
+right: 0%;
+top: 0%;
+bottom: 0%;
+
+/* iOS/Chrome/Bars Background Dark */
+background: #353739;
+backdrop-filter: blur(13.5914px);
+/* Note: backdrop-filter has minimal browser support */
+
+
+/* iOS / Separator */
+
+position: absolute;
+height: 1px;
+left: 0px;
+right: 0px;
+bottom: 0px;
+
+transform: matrix(1, 0, 0, -1, 0, 0);
+
+
+/* Line */
+
+position: absolute;
+height: 0px;
+left: 0px;
+right: 0px;
+bottom: 0px;
+
+/* iOS/Separetor */
+border: 0.5px solid rgba(0, 0, 0, 0.2);
+
+
+/* iOS / Status Bar / X / Default */
+
+position: absolute;
+height: 44px;
+left: 0px;
+right: 0px;
+top: 0px;
+
+
+
+/* Action */
+
+position: absolute;
+left: 5.3%;
+right: 80.37%;
+top: 43.18%;
+bottom: 15.91%;
+
+
+
+/* Time */
+
+position: absolute;
+width: 54px;
+height: 18px;
+left: 0px;
+top: calc(50% - 18px/2);
+
+font-family: 'SF Pro Text';
+font-style: normal;
+font-weight: 600;
+font-size: 15px;
+line-height: 18px;
+/* identical to box height */
+text-align: center;
+letter-spacing: -0.165px;
+
+/* White */
+color: #FFFFFF;
+
+
+
+/* Container */
+
+position: absolute;
+width: 68px;
+height: 14px;
+right: 34px;
+top: calc(50% - 14px/2 + 6px);
+
+
+
+/* icon battery */
+
+position: absolute;
+width: 29px;
+height: 20px;
+left: 41px;
+top: -3px;
+
+font-family: 'SF Pro Text';
+font-style: normal;
+font-weight: 400;
+font-size: 17px;
+line-height: 20px;
+
+/* White */
+color: #FFFFFF;
+
+
+
+/* Combined Shape */
+
+position: absolute;
+left: 0.74%;
+right: 74.12%;
+top: 11.43%;
+bottom: 12.14%;
+
+/* White */
+background: #FFFFFF;
+
+
+/* Rectangle */
+
+position: absolute;
+left: 0.74%;
+right: 94.85%;
+top: 59.29%;
+bottom: 12.14%;
+
+background: #000000;
+border-radius: 1.2px;
+
+
+/* Rectangle */
+
+position: absolute;
+left: 7.79%;
+right: 87.79%;
+top: 45%;
+bottom: 12.14%;
+
+background: #000000;
+border-radius: 1.2px;
+
+
+/* Rectangle */
+
+position: absolute;
+left: 14.56%;
+right: 81.03%;
+top: 28.57%;
+bottom: 12.14%;
+
+background: #000000;
+border-radius: 1.2px;
+
+
+/* Rectangle */
+
+position: absolute;
+left: 21.47%;
+right: 74.12%;
+top: 11.43%;
+bottom: 12.14%;
+
+background: #000000;
+border-radius: 1.2px;
+
+
+/* icon wi-fi */
+
+position: absolute;
+width: 19px;
+height: 17px;
+left: 21px;
+top: -1px;
+
+font-family: 'SF Pro Text';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 17px;
+/* identical to box height */
+
+/* White */
+color: #FFFFFF;
+
+
+
+/* iOS / Chrome / Address Bar */
+
+position: absolute;
+height: 40px;
+left: 10px;
+right: 10px;
+bottom: 11px;
+
+
+
+/* bar-input */
+
+position: absolute;
+left: 0%;
+right: 0%;
+top: 0%;
+bottom: 0%;
+
+/* iOS/Chrome/Address Field Background */
+background: #5E6268;
+border-radius: 30px;
+
+
+/* iOS / Chrome / Address */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 7px;
+
+position: absolute;
+width: 173px;
+height: 19px;
+left: calc(50% - 173px/2 + 1px);
+top: calc(50% - 19px/2 + 0.5px);
+
+
+
+/* Union */
+
+width: 8px;
+height: 10px;
+
+/* White */
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Rectangle 3 */
+
+position: absolute;
+width: 8px;
+height: 6.77px;
+left: 0px;
+top: 7.73px;
+
+background: rgba(0, 0, 0, 0.5);
+
+
+/* Rectangle 4 (Stroke) */
+
+position: absolute;
+width: 5.43px;
+height: 7.27px;
+left: 1.38px;
+top: 4.5px;
+
+background: #770D0D;
+
+
+/* domain */
+
+width: 158px;
+height: 19px;
+
+font-family: 'SF Pro Text';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 19px;
+/* identical to box height */
+
+/* White */
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Union */
+
+position: absolute;
+width: 14px;
+height: 18px;
+left: 342px;
+top: 11px;
+
+background: #BDC0C6;
+
+
+/* Union */
+
+position: absolute;
+width: 8.41px;
+height: 12.47px;
+left: 344.79px;
+top: 11px;
+
+background: #000000;
+
+
+/* Vector 2 (Stroke) */
+
+position: absolute;
+width: 2px;
+height: 11.05px;
+right: 23px;
+top: calc(50% - 11.05px/2 - 2.05px);
+
+background: #000000;
+
+
+/* Vector 1 (Stroke) */
+
+position: absolute;
+width: 8.41px;
+height: 5.65px;
+right: 19.79px;
+top: calc(50% - 5.65px/2 - 6.18px);
+
+background: #000000;
+
+
+/* Subtract */
+
+position: absolute;
+width: 14px;
+height: 11.55px;
+left: 342px;
+top: 17.44px;
+
+background: #000000;
+
+
+/* Rectangle 1 */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 14px;
+height: 11.56px;
+right: 17px;
+top: calc(50% - 11.56px/2 + 3.22px);
+
+border: 2px solid #000000;
+border-radius: 2px;
+
+
+/* Rectangle 2 */
+
+position: absolute;
+width: 8px;
+height: 4.02px;
+right: 20px;
+top: calc(50% - 4.02px/2 - 1.55px);
+
+background: #C4C4C4;
+
+
+/* Frame 1984077205 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 18px 20px;
+gap: 12px;
+
+position: absolute;
+width: 393px;
+height: 81px;
+left: 0px;
+top: 105px;
+
+background: rgba(255, 255, 255, 0.01);
+backdrop-filter: blur(0px);
+/* Note: backdrop-filter has minimal browser support */
+
+
+/* Frame 1618872397 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px 16px 0px 12px;
+gap: 176px;
+
+width: 373px;
+height: 56px;
+
+/* Background/white */
+background: #FFFFFF;
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Frame 1984077294 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+margin: 0 auto;
+width: 95px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* arrow_back */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* icon */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+/* M3/sys/light/on-surface */
+background: #1D1B20;
+
+
+/* VedaAI */
+
+width: 63px;
+height: 28px;
+
+font-family: 'Bricolage Grotesque';
+font-style: normal;
+font-weight: 700;
+font-size: 20px;
+line-height: 140%;
+/* identical to box height, or 28px */
+display: flex;
+align-items: center;
+letter-spacing: -0.06em;
+
+/* Text/Primary */
+color: #303030;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 1984077614 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+margin: 0 auto;
+width: 116px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 1618872411 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+isolation: isolate;
+
+width: 36px;
+height: 36px;
+
+/* Background/bg-off white primary */
+background: #F6F6F6;
+border-radius: 100px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Icon */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 8.33%;
+bottom: 29.17%;
+
+/* Text/Primary */
+border: 2px solid #303030;
+
+
+/* Vector */
+
+position: absolute;
+left: 42.79%;
+right: 42.79%;
+top: 87.5%;
+bottom: 8.35%;
+
+/* Text/Primary */
+border: 2px solid #303030;
+
+
+/* Ellipse 9 */
+
+position: absolute;
+width: 8px;
+height: 8px;
+left: 27px;
+top: 1px;
+
+/* Buttons/primary - Orange */
+background: #FF5623;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Frame 1618872412 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 32px;
+height: 32px;
+
+background: url(d48ca990897411b3cccc9c5098d9d1b0.jpg),
+url(WhatsApp Image 2026-01-11 at 18.12.44.jpg),
+#F6F6F6;
+border-radius: 100px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* menu */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* icon */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 25%;
+bottom: 25%;
+
+/* M3/sys/light/on-surface */
+background: #1D1B20;
+
+
+/* Frame 1984077606 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 8px 10px;
+gap: 12px;
+
+position: absolute;
+width: 393px;
+height: 16px;
+left: 0px;
+bottom: 0px;
+
+background: rgba(255, 255, 255, 0.01);
+backdrop-filter: blur(12px);
+/* Note: backdrop-filter has minimal browser support */
+
+
+/* Line 1 */
+
+width: 128px;
+height: 0px;
+
+border: 5px solid rgba(48, 48, 48, 0.5);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #FF5623;
+  --color-primary-gradient-start: #FB975D;
+  --color-primary-gradient-end: #FC5E24;
+  --color-background-offwhite: #F5F5F5;
+  --color-text-primary: #303030;
+  --color-text-dark: #2B2B2B;
+  --color-text-muted: rgba(94, 94, 94, 0.55);
+  
+  --font-sans: var(--font-bricolage);
+}
+
+body {
+  background: var(--color-background-offwhite);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
