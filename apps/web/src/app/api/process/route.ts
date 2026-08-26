@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
-import { compressPdf } from '@caijinglong/pdf-compress';
 
 // Initialize Gemini Client
 // Requires GEMINI_API_KEY environment variable to be set
@@ -64,30 +63,6 @@ const extractionSchema = {
     }
 };
 
-async function processDocument(doc: { base64: string; mimeType: string }, label: string) {
-    if (!doc.mimeType.includes('pdf')) return doc;
-    
-    // approx size in bytes
-    const sizeInBytes = (doc.base64.length * 3) / 4;
-    
-    if (sizeInBytes > 5 * 1024 * 1024) {
-        console.log(`[${label}] PDF exceeds 5MB (${(sizeInBytes/1024/1024).toFixed(2)}MB). Compressing...`);
-        try {
-            const buffer = Buffer.from(doc.base64, 'base64');
-            const result = await compressPdf(buffer);
-            console.log(`[${label}] Compression complete. Saved: ${(result.summary.savedBytes/1024/1024).toFixed(2)}MB. Ratio: ${result.summary.ratio.toFixed(2)}`);
-            
-            return {
-                base64: Buffer.from(result.data).toString('base64'),
-                mimeType: doc.mimeType
-            };
-        } catch (err) {
-            console.error(`[${label}] Compression failed. Using original document.`, err);
-            return doc;
-        }
-    }
-    return doc;
-}
 
 const withTimeout = (promise: Promise<any>, ms: number) => {
     return Promise.race([
@@ -104,9 +79,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required files (questionPaper and answerSheet)" }, { status: 400 });
     }
 
-    // Compress large PDFs if needed
-    const processedQP = await processDocument(questionPaper, 'QuestionPaper');
-    const processedAS = await processDocument(answerSheet, 'AnswerSheet');
+
 
     const requestOptions = {
         contents: [
@@ -126,9 +99,9 @@ Strict Grading Rules:
 4. Exact Matching: Your goal is to map the student's answers to the exact questions from the question paper.
 
 Here is the Question Paper. Extract all the questions, their numbers, and their maximum marks.` },
-                    { inlineData: { data: processedQP.base64, mimeType: processedQP.mimeType } },
+                    { inlineData: { data: questionPaper.base64, mimeType: questionPaper.mimeType } },
                     { text: 'Here is the Student Answer Sheet. Extract all the answers written by the student and grade them strictly according to the rules.' },
-                    { inlineData: { data: processedAS.base64, mimeType: processedAS.mimeType } },
+                    { inlineData: { data: answerSheet.base64, mimeType: answerSheet.mimeType } },
                     { text: 'Output as JSON.' }
                 ]
             }

@@ -43,15 +43,32 @@ export function UploadArea() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
+  const processFile = async (file: File): Promise<string> => {
+    if (file.type === 'application/pdf' && file.size > 2 * 1024 * 1024) {
+      console.log(`Compressing ${file.name}...`);
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const { compressPdf } = await import('@caijinglong/pdf-compress/browser');
+        const result = await compressPdf(new Uint8Array(arrayBuffer));
+        console.log(`Compression saved ${result.summary.savedBytes} bytes`);
+        
+        let binary = '';
+        const bytes = new Uint8Array(result.data);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+      } catch (err) {
+        console.error("Compression failed, using original", err);
+      }
+    }
+
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
-        // extract the base64 part
         const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
+        resolve(result.split(',')[1]);
       };
       reader.onerror = (error) => reject(error);
     });
@@ -64,13 +81,12 @@ export function UploadArea() {
     setIsLoading(true);
     
     try {
-      const qpBase64 = await fileToBase64(questionPaper);
-      const asBase64 = await fileToBase64(answerSheet);
+      const qpBase64 = await processFile(questionPaper);
+      const asBase64 = await processFile(answerSheet);
       
       setQuestionPaperBase64({ base64: qpBase64, mimeType: questionPaper.type });
       setAnswerSheetBase64({ base64: asBase64, mimeType: answerSheet.type });
       
-      // Navigate to process screen
       router.push('/process');
     } catch (e) {
       console.error("Failed to read files", e);
