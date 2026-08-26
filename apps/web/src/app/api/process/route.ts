@@ -107,8 +107,8 @@ Here is the Question Paper. Extract all the questions, their numbers, and their 
         }
     };
 
-    console.log("Calling Gemini 3.1 Pro Preview...");
-    const response = await ai.models.generateContent({ model: 'gemini-3.1-pro-preview', ...requestOptions });
+    console.log("Calling Gemini Flash Lite Latest...");
+    const response = await ai.models.generateContent({ model: 'gemini-flash-lite-latest', ...requestOptions });
 
     const outputText = response.text;
     console.log("Received Gemini Response.");
