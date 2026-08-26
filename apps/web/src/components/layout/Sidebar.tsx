@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, Users, FileText, ClipboardList, BookOpen, Settings, ChevronRight } from "lucide-react";
+import { Book, CheckSquare, Settings, Users, ArrowLeft, LayoutDashboard, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   return (
@@ -14,11 +17,11 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
         {/* AI Toolkit Button */}
         {collapsed ? (
-          <button className="flex items-center justify-center w-12 h-12 mx-auto bg-[#2B2B2B] text-white rounded-full border border-[#FF5623] hover:bg-[#1A1A1A] transition-colors">
+          <button onClick={() => toast('Coming Soon')} className="flex items-center justify-center w-12 h-12 mx-auto bg-[#2B2B2B] text-white rounded-full border border-[#FF5623] hover:bg-[#1A1A1A] transition-colors">
             <span className="text-lg">✨</span>
           </button>
         ) : (
-          <button className="flex items-center justify-center gap-2 bg-[#2B2B2B] text-white rounded-full py-3 px-4 border border-[#FF5623] hover:bg-[#1A1A1A] transition-colors mx-2">
+          <button onClick={() => toast('Coming Soon')} className="flex items-center justify-center gap-2 bg-[#2B2B2B] text-white rounded-full py-3 px-4 border border-[#FF5623] hover:bg-[#1A1A1A] transition-colors mx-2">
             <span className="text-lg">✨</span>
             <span className="font-semibold text-[15px]">AI Teacher's Toolkit</span>
           </button>
@@ -26,34 +29,33 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
 
         {/* Navigation */}
         <nav className="flex flex-col gap-2">
-          <NavLink href="#" icon={<LayoutGrid size={20} />} label="Home" collapsed={collapsed} />
-          <NavLink href="#" icon={<Users size={20} />} label="My Classroom" collapsed={collapsed} />
-          <NavLink href="#" icon={<FileText size={20} />} label="Assignments" collapsed={collapsed} />
-          <NavLink href="#" icon={<ClipboardList size={20} />} label="Exams" active collapsed={collapsed} />
-          <NavLink href="#" icon={<BookOpen size={20} />} label="My Library" collapsed={collapsed} />
+          <NavItem href="#" icon={<LayoutDashboard size={20} />} label="Home" collapsed={collapsed} onClick={() => toast('Coming Soon')} />
+          <NavItem href="#" icon={<Users size={20} />} label="My Classroom" collapsed={collapsed} onClick={() => toast('Coming Soon')} />
+          <NavItem href="#" icon={<CheckSquare size={20} />} label="Assignments" collapsed={collapsed} onClick={() => toast('Coming Soon')} />
+          <NavItem href="#" icon={<Book size={20} />} label="Exams" active collapsed={collapsed} />
+          <NavItem href="#" icon={<Book size={20} />} label="My Library" collapsed={collapsed} onClick={() => toast('Coming Soon')} />
         </nav>
       </div>
 
       <div className="flex flex-col gap-6">
         {/* Settings */}
-        <NavLink href="#" icon={<Settings size={20} />} label="Settings" collapsed={collapsed} />
+        <NavItem href="#" icon={<Settings size={20} />} label="Settings" collapsed={collapsed} onClick={() => toast('Coming Soon')} />
 
         {/* Profile Card / Icon */}
         {collapsed ? (
           <div className="flex flex-col items-center gap-4">
-             <div className="w-10 h-10 bg-[#F3F3F3] rounded-full flex items-center justify-center">
+             <div className="w-10 h-10 bg-[#F3F3F3] rounded-full flex items-center justify-center cursor-pointer" onClick={() => toast('Coming Soon')}>
                 <div className="w-6 h-6 border-2 border-green-500 rounded-full flex items-center justify-center">
                   <span className="text-[8px] text-green-500 font-bold">DPS</span>
                 </div>
              </div>
-             <button className="text-gray-400 hover:text-gray-600 transition-colors">
+             <button className="text-gray-400 hover:text-gray-600 transition-colors" onClick={() => toast('Coming Soon')}>
                 <ChevronRight size={20} />
              </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3 bg-[#F3F3F3] p-4 rounded-xl mx-2">
+          <div className="flex items-center gap-3 bg-[#F3F3F3] p-4 rounded-xl mx-2 cursor-pointer" onClick={() => toast('Coming Soon')}>
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              {/* Placeholder for school logo */}
               <div className="w-6 h-6 border-2 border-green-500 rounded-full flex items-center justify-center">
                 <span className="text-[8px] text-green-500 font-bold">DPS</span>
               </div>
@@ -69,10 +71,11 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
   );
 }
 
-function NavLink({ href, icon, label, active, collapsed }: { href: string; icon: React.ReactNode; label: string; active?: boolean; collapsed?: boolean }) {
+function NavItem({ href, icon, label, active, collapsed, onClick }: { href: string; icon: React.ReactNode; label: string; active?: boolean; collapsed?: boolean; onClick?: () => void }) {
   return (
     <Link 
       href={href}
+      onClick={onClick}
       className={`flex items-center ${collapsed ? 'justify-center mx-auto w-12 h-12' : 'gap-3 px-4 py-3 mx-2'} rounded-xl transition-colors ${
         active 
           ? "bg-[#F3F3F3] text-gray-900 font-semibold" 

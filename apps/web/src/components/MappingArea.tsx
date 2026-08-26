@@ -1,24 +1,25 @@
 "use client";
 
-import { ChevronDown, ChevronUp, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronUp, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-
-const questions = [
-  { id: 1, q: "Which blood vessel carries blood away from the heart?", score: "2/2", maxScore: 2 },
-  { id: 2, q: "Which of the following organelles is primarily involved in photosynthesis?", score: "2/2", maxScore: 2, feedback: "Excellent work! You correctly identified the chloroplast as the organelle responsible for photosynthesis. Keep it up!" },
-  { id: 3, q: "Explain the role of chloroplasts in photosynthesis, naming the main pigments involved and briefly outlining the two major stages of the process.", score: "2/2", maxScore: 2 },
-  { id: 4, q: "Describe the flow of blood through the human heart starting from the right atrium and ending at the aorta; include the names of valves crossed.", score: "0/2", maxScore: 2 },
-  { id: 5, q: "Draw a labelled diagram of an alveolus showing capillaries and air space (label alveolar sac, capillary, and direction of gas exchange).", score: "2/2", maxScore: 2 },
-  { id: 6, q: "Draw a neat labelled diagram of the human digestive system (stomach, small intestine, large intestine, liver, pancreas) and label the site where most absorption occurs.", score: "4/5", maxScore: 5 },
-  { id: 7, q: "Draw and label a nephron (Bowman's capsule, glomerulus, proximal tubule, loop of Henle, distal tubule, collecting duct).", score: "5/5", maxScore: 5 },
-];
+import { toast } from "sonner";
+import { useMappingStore } from "@/store/mappingStore";
+import { generatePdfReport } from "@/utils/generateReport";
+import { Download } from "lucide-react";
+import Script from "next/script";
 
 export function MappingArea() {
-  const [expandedId, setExpandedId] = useState<number>(2);
+  const { mappedData, answerSheetBase64 } = useMappingStore();
+  const [expandedId, setExpandedId] = useState<string | null>(mappedData?.[0]?.question?.id || null);
   const [mobileTab, setMobileTab] = useState<"questions" | "answers">("questions");
+  const [scale, setScale] = useState<number>(100);
+
+  const handleZoomIn = () => setScale(s => Math.min(s + 10, 200));
+  const handleZoomOut = () => setScale(s => Math.max(s - 10, 50));
 
   return (
     <div className="flex-1 flex flex-col w-full h-full relative">
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" strategy="lazyOnload" />
       
       {/* Mobile Toggle */}
       <div className="lg:hidden w-full flex justify-center mb-4 px-4">
@@ -48,42 +49,98 @@ export function MappingArea() {
         <div className={`w-full lg:w-1/2 flex flex-col bg-white rounded-[20px] lg:rounded-l-[20px] lg:rounded-r-none shadow-sm border border-gray-100 overflow-hidden h-full ${mobileTab === 'questions' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-800 text-[18px]">Extracted <span className="font-bold">Questions</span> <span className="hidden sm:inline">(from question paper)</span></h2>
-            <button className="text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-full border border-gray-200 transition-colors">
-              Expand All
+            <button onClick={() => setExpandedId(null)} className="text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-full border border-gray-200 transition-colors">
+              Collapse All
             </button>
           </div>
           
+          {/* AI Grading Summary Banner */}
+          {mappedData.length > 0 && (
+            <div className="mx-4 mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-blue-900 font-bold text-sm mb-1">AI Grading Complete</h3>
+                <p className="text-blue-700 text-xs">
+                  {mappedData.length} questions • {mappedData.filter(m => m.status !== 'unanswered').length} answered • {mappedData.filter(m => m.status === 'unanswered').length} unanswered
+                </p>
+                <p className="text-blue-800 font-semibold mt-2">
+                  Suggested Total: {mappedData.reduce((acc, curr) => acc + (curr.finalMarks ?? curr.aiSuggestedMarks ?? 0), 0)} / {mappedData.reduce((acc, curr) => acc + (curr.question.maxScore || 0), 0)}
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+                <button 
+                  onClick={() => {
+                    mappedData.forEach(m => {
+                      if (m.finalMarks === undefined && m.aiSuggestedMarks !== undefined) {
+                        useMappingStore.getState().updateMappedItem(m.question.id, { finalMarks: m.aiSuggestedMarks, teacherEdited: false });
+                      }
+                    });
+                    toast.success("Accepted all AI suggestions");
+                  }}
+                  className="flex-1 sm:flex-none text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Accept All Suggestions
+                </button>
+                <button 
+                  onClick={async () => {
+                    const toastId = toast.loading("Generating PDF Report...");
+                    try {
+                      await generatePdfReport(mappedData, answerSheetBase64);
+                      toast.success("PDF Generated Successfully", { id: toastId });
+                    } catch (e) {
+                      console.error("PDF generation failed:", e);
+                      toast.error("Failed to generate PDF", { id: toastId });
+                    }
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold bg-white hover:bg-gray-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg transition-colors whitespace-nowrap shadow-sm"
+                >
+                  <Download size={14} />
+                  Download Report
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-            {questions.map((q) => {
+            {mappedData.map((item, index) => {
+              const q = item.question;
               const isExpanded = expandedId === q.id;
-              const isPerfectScore = parseInt(q.score.split('/')[0]) === q.maxScore;
+              const currentScore = item.finalMarks ?? item.aiSuggestedMarks ?? 0;
+              const isPerfectScore = currentScore === q.maxScore;
+              const needsReview = (item.aiConfidence && item.aiConfidence < 0.7) || item.status === 'ambiguous';
               
               return (
                 <div 
-                  key={q.id} 
+                  key={q.id || index} 
                   className={`flex flex-col border rounded-xl overflow-hidden transition-all ${
                     isExpanded ? 'border-[#FF5623] shadow-sm' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div 
                     className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 cursor-pointer"
-                    onClick={() => setExpandedId(isExpanded ? 0 : q.id)}
+                    onClick={() => setExpandedId(isExpanded ? null : q.id)}
                   >
                     <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold text-sm ${
                       isExpanded ? 'bg-[#FF5623]' : 'bg-gray-500'
                     }`}>
-                      {q.id}
+                      {q.number || (index + 1)}
                     </div>
                     
                     <div className="flex-1 text-[14px] sm:text-[15px] text-gray-800 leading-snug pt-1">
-                      {q.q}
+                      {q.text}
+                      {needsReview && (
+                        <div className="inline-flex items-center gap-1 ml-2 text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                          <AlertTriangle size={12} />
+                          Review required
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <div className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${
+                        item.status === 'unanswered' ? 'bg-gray-100 text-gray-500' :
                         isPerfectScore ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                       }`}>
-                        {q.score}
+                        {item.status === 'unanswered' ? `0 / ${q.maxScore}` : `${currentScore} / ${q.maxScore}`}
                       </div>
                       <button className="text-gray-400 hover:text-gray-700">
                         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -91,17 +148,78 @@ export function MappingArea() {
                     </div>
                   </div>
 
-                  {isExpanded && q.feedback && (
+                  {isExpanded && (
                     <div className="pl-[52px] sm:pl-[64px] pr-4 pb-4 pt-0">
-                       <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-100">
-                          <h4 className="font-semibold text-gray-800 text-sm mb-1">AI Feedback</h4>
-                          <p className="text-gray-600 text-[13px] sm:text-sm leading-relaxed">{q.feedback}</p>
+                       
+                       {/* Grading Widget */}
+                       <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                         
+                         {/* AI Suggestion */}
+                         <div className="flex flex-col">
+                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">AI Suggested Score</span>
+                           <div className="flex items-baseline gap-1">
+                             <span className="text-2xl font-bold text-gray-800">{item.aiSuggestedMarks ?? 0}</span>
+                             <span className="text-sm font-medium text-gray-500">/ {q.maxScore}</span>
+                           </div>
+                           {item.status === 'unanswered' && <span className="text-xs text-red-500 mt-1 font-medium">Unanswered (AI default 0)</span>}
+                         </div>
+
+                         {/* Teacher Override */}
+                         <div className="flex flex-col bg-white p-3 rounded-lg border border-gray-200 shadow-sm min-w-[180px]">
+                            <span className="text-xs font-semibold text-gray-800 mb-2 flex items-center justify-between">
+                              Teacher's Score 
+                              {item.teacherEdited && <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Edited</span>}
+                            </span>
+                            <div className="flex items-center justify-between gap-3">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newVal = Math.max(0, currentScore - 1);
+                                  useMappingStore.getState().updateMappedItem(q.id, { finalMarks: newVal, teacherEdited: true });
+                                }}
+                                className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-bold transition-colors"
+                              >
+                                −
+                              </button>
+                              <div className="text-lg font-bold text-gray-900 w-8 text-center">{currentScore}</div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newVal = Math.min(q.maxScore, currentScore + 1);
+                                  useMappingStore.getState().updateMappedItem(q.id, { finalMarks: newVal, teacherEdited: true });
+                                }}
+                                className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-700 font-bold transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                         </div>
                        </div>
+
+                       <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-100 mb-2">
+                          <h4 className="font-semibold text-gray-800 text-sm mb-1">Student's Extracted Answer</h4>
+                          <p className="text-gray-600 text-[13px] sm:text-sm leading-relaxed">{item.answer?.text || 'No answer found.'}</p>
+                       </div>
+                       
+                       {item.aiFeedback && (
+                         <div className="bg-orange-50 p-3 sm:p-4 rounded-xl border border-orange-100">
+                            <h4 className="font-semibold text-orange-800 text-sm mb-1">AI Feedback</h4>
+                            <p className="text-orange-700 text-[13px] sm:text-sm leading-relaxed">{item.aiFeedback}</p>
+                         </div>
+                       )}
                     </div>
                   )}
                 </div>
               );
             })}
+            
+            {mappedData.length === 0 && (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
+                <AlertTriangle size={48} className="mb-4 text-gray-300" />
+                <p>No mapping data available.</p>
+                <p className="text-sm mt-2">Please upload documents first.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -115,43 +233,71 @@ export function MappingArea() {
             
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <div className="flex items-center bg-[#4A4A4A] rounded-lg border border-[#5A5A5A] overflow-hidden">
-                <button className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ZoomOut size={14} /></button>
-                <span className="px-2 text-xs font-medium min-w-[40px] text-center">100%</span>
-                <button className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ZoomIn size={14} /></button>
+                <button onClick={handleZoomOut} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ZoomOut size={14} /></button>
+                <span className="px-2 text-xs font-medium min-w-[40px] text-center">{scale}%</span>
+                <button onClick={handleZoomIn} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ZoomIn size={14} /></button>
               </div>
               
               <div className="flex items-center bg-[#4A4A4A] rounded-lg border border-[#5A5A5A] overflow-hidden">
-                <button className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronLeft size={14} /></button>
-                <span className="px-2 text-xs font-medium whitespace-nowrap">Page 1 of 4</span>
-                <button className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronRight size={14} /></button>
+                <button onClick={() => toast("Previous page coming soon")} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronLeft size={14} /></button>
+                <span className="px-2 text-xs font-medium whitespace-nowrap">Page 1 of 1</span>
+                <button onClick={() => toast("Next page coming soon")} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronRight size={14} /></button>
               </div>
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-2 sm:p-6 bg-[#E0E0E0] relative flex justify-center">
-             {/* Mock Paper Background */}
-             <div className="w-full max-w-[600px] bg-[#F5F2EA] shadow-md relative min-h-[1200px]" style={{
-                backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #9E9E9E 31px, #9E9E9E 32px), repeating-linear-gradient(90deg, transparent, transparent 39px, #FFCDD2 39px, #FFCDD2 40px)',
-                backgroundSize: '100% 32px, 40px 100%'
+          <div className="flex-1 overflow-y-auto p-2 sm:p-6 bg-[#E0E0E0] relative flex justify-center items-start overflow-x-auto">
+             <div className="w-full max-w-[800px] bg-white shadow-md relative transition-transform origin-top" style={{
+                transform: `scale(${scale / 100})`,
+                marginBottom: `${(scale > 100 ? (scale - 100) * 6 : 0)}px`
              }}>
-               {/* Content on paper */}
-               <div className="pt-16 pl-12 sm:pl-14 pr-4 sm:pr-8 text-[#2B3A67] font-[cursive] text-lg sm:text-xl leading-[32px]">
-                  <div className="mb-4">
-                    <span className="absolute left-1 sm:left-2 font-bold font-sans text-gray-700">Q1.</span>
-                    Photosynthesis is the process used by green plants and some other organisms to convert light energy into chemical energy.
+                {answerSheetBase64 ? (
+                  answerSheetBase64.mimeType.includes('pdf') ? (
+                    <div className="w-full min-h-[1200px] flex flex-col relative z-20">
+                      <object 
+                        data={`data:application/pdf;base64,${answerSheetBase64.base64}`} 
+                        type="application/pdf" 
+                        className="w-full h-full min-h-[1200px]"
+                      >
+                        <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500 p-8 text-center">
+                          <p>Your browser doesn't support embedded PDFs. <a href={`data:application/pdf;base64,${answerSheetBase64.base64}`} download="answer_sheet.pdf" className="text-[#FF5623] underline">Download it here</a>.</p>
+                        </div>
+                      </object>
+                      <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded shadow-lg pointer-events-none z-30">
+                        Bounding box overlays are not available for PDFs. Upload images for full bounding box support.
+                      </div>
+                    </div>
+                  ) : (
+                    <img src={`data:${answerSheetBase64.mimeType};base64,${answerSheetBase64.base64}`} alt="Answer Sheet" className="w-full h-auto block" />
+                  )
+                ) : (
+                  <div className="w-full min-h-[1200px] bg-[#F5F2EA] flex items-center justify-center text-gray-400">
+                    No answer sheet available.
                   </div>
-                  
-                  {/* Active Highlight Box for Q2 */}
-                  <div className="absolute top-[300px] left-6 sm:left-8 right-2 sm:right-4 border-2 border-green-500 bg-green-500/10 rounded-lg p-3 sm:p-4 min-h-[150px]">
-                     <div className="absolute -top-3 -left-3 bg-green-500 text-white font-bold text-xs px-2 py-1 rounded">Q2</div>
-                     <div className="absolute -top-4 -left-10 sm:-left-12 font-bold font-sans text-gray-700 text-lg sm:text-xl">Q2.</div>
-                     The process mainly occurs in the chloroplast of the plant cell. It has two main stages:
-                     <ol className="list-decimal pl-5 sm:pl-6 mt-2">
-                        <li>Light reaction - Captures light energy.</li>
-                        <li>Dark reaction - Uses energy to make glucose.</li>
-                     </ol>
-                  </div>
-               </div>
+                )}
+                
+                {/* Dynamic Highlight Boxes */}
+                {(!answerSheetBase64 || !answerSheetBase64.mimeType.includes('pdf')) && mappedData.map((item) => {
+                  if (item.question.id === expandedId && item.answer?.regions) {
+                    return item.answer.regions.map((region, idx) => (
+                      <div 
+                        key={`${item.question.id}-region-${idx}`}
+                        className="absolute border-[3px] border-green-500 bg-green-500/10 rounded-sm"
+                        style={{
+                          top: `${region.y * 100}%`,
+                          left: `${region.x * 100}%`,
+                          width: `${region.width * 100}%`,
+                          height: `${region.height * 100}%`,
+                        }}
+                      >
+                         <div className="absolute -top-3 -left-3 bg-green-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded shadow-sm">
+                           Q{item.question.number}
+                         </div>
+                      </div>
+                    ));
+                  }
+                  return null;
+                })}
              </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { Sparkles } from "lucide-react";
 
 export function LoadingArea() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full h-full bg-white rounded-[40px] shadow-sm relative">
+    <div className="flex-1 flex flex-col items-center justify-center w-full h-full relative">
       <div className="flex flex-col items-center justify-center gap-6">
         {/* Animated Sparkles / Extracting Icon */}
         <div className="relative w-32 h-32 flex items-center justify-center animate-pulse">

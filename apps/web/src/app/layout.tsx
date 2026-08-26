@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -18,7 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${bricolage.variable} h-full antialiased font-sans`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-[#F5F5F5]">{children}</body>
+      <body className="min-h-full flex flex-col font-sans bg-[#F5F5F5]">
+        {children}
+        <Toaster position="bottom-right" />
+      </body>
     </html>
   );
 }
