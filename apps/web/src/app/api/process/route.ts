@@ -89,32 +89,12 @@ async function processDocument(doc: { base64: string; mimeType: string }, label:
     return doc;
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function withRetry<T>(
-    operation: () => Promise<T>,
-    maxRetries = 3,
-    baseDelayMs = 2000
-): Promise<T> {
-    let attempt = 0;
-    while (attempt < maxRetries) {
-        try {
-            return await operation();
-        } catch (error: any) {
-            attempt++;
-            const status = error?.status || error?.response?.status;
-            // Retry on 503 Service Unavailable or 429 Too Many Requests
-            if ((status === 503 || status === 429 || error?.message?.includes('503')) && attempt < maxRetries) {
-                const delay = baseDelayMs * Math.pow(2, attempt - 1);
-                console.log(`[Gemini API] 503/429 encountered. Retrying attempt ${attempt} in ${delay}ms...`);
-                await sleep(delay);
-                continue;
-            }
-            throw error;
-        }
-    }
-    throw new Error("Max retries exceeded");
-}
+const withTimeout = (promise: Promise<any>, ms: number) => {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+    ]);
+};
 
 export async function POST(req: Request) {
   try {
@@ -128,17 +108,12 @@ export async function POST(req: Request) {
     const processedQP = await processDocument(questionPaper, 'QuestionPaper');
     const processedAS = await processDocument(answerSheet, 'AnswerSheet');
 
-    // Call Gemini to extract and map
-    console.log("Calling Gemini 3.1 Pro Preview...");
-    
-    const response = await withRetry(() => 
-        ai.models.generateContent({
-            model: 'gemini-3.1-pro-preview',
-            contents: [
-                {
-                    role: 'user',
-                    parts: [
-                        { text: `You are an expert, deterministic document grader. 
+    const requestOptions = {
+        contents: [
+            {
+                role: 'user',
+                parts: [
+                    { text: `You are an expert, deterministic document grader. 
 Strict Extraction & Formatting Rules:
 1. The 'number' field must ONLY contain the main integer (e.g., "1"). 
 2. The 'subPart' field must ONLY contain the sub-part letter (e.g., "a", "b"). If a question has NO subpart, you must completely OMIT the subPart field. Do NOT write "null", "undefined", or "none".
@@ -151,20 +126,34 @@ Strict Grading Rules:
 4. Exact Matching: Your goal is to map the student's answers to the exact questions from the question paper.
 
 Here is the Question Paper. Extract all the questions, their numbers, and their maximum marks.` },
-                        { inlineData: { data: processedQP.base64, mimeType: processedQP.mimeType } },
-                        { text: 'Here is the Student Answer Sheet. Extract all the answers written by the student and grade them strictly according to the rules.' },
-                        { inlineData: { data: processedAS.base64, mimeType: processedAS.mimeType } },
-                        { text: 'Output as JSON.' }
-                    ]
-                }
-            ],
-            config: {
-                temperature: 0.0,
-                responseMimeType: 'application/json',
-                responseSchema: extractionSchema
+                    { inlineData: { data: processedQP.base64, mimeType: processedQP.mimeType } },
+                    { text: 'Here is the Student Answer Sheet. Extract all the answers written by the student and grade them strictly according to the rules.' },
+                    { inlineData: { data: processedAS.base64, mimeType: processedAS.mimeType } },
+                    { text: 'Output as JSON.' }
+                ]
             }
-        })
-    );
+        ],
+        config: {
+            temperature: 0.0,
+            responseMimeType: 'application/json',
+            responseSchema: extractionSchema
+        }
+    };
+
+    let response;
+    try {
+        console.log("Calling Gemini 3.1 Pro Preview...");
+        response = await withTimeout(
+            ai.models.generateContent({ model: 'gemini-3.1-pro-preview', ...requestOptions }),
+            60000 // 60s timeout
+        );
+    } catch (err: any) {
+        console.log(`[Gemini API] 3.1 Pro Preview failed (${err.message}). Falling back to gemini-3.7-flash...`);
+        response = await withTimeout(
+            ai.models.generateContent({ model: 'gemini-3.7-flash', ...requestOptions }),
+            60000 // 60s timeout
+        );
+    }
 
     const outputText = response.text;
     console.log("Received Gemini Response.");

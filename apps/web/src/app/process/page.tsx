@@ -39,7 +39,8 @@ export default function Process() {
       } catch (err: any) {
         console.error(err);
         setError(err.message);
-        router.push('/mapping'); // Still route there to show the error state or empty state
+        import("sonner").then(({ toast }) => toast.error("The AI servers are currently overloaded. Please try again later."));
+        router.push('/');
       }
     };
 
