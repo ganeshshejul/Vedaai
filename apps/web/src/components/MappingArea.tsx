@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronDown, ChevronUp, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useMappingStore } from "@/store/mappingStore";
 import { generatePdfReport } from "@/utils/generateReport";
+import { formatQuestionNumber } from "@/utils/formatQuestion";
 import { Download } from "lucide-react";
 import Script from "next/script";
 
@@ -13,6 +14,63 @@ export function MappingArea() {
   const [expandedId, setExpandedId] = useState<string | null>(mappedData?.[0]?.question?.id || null);
   const [mobileTab, setMobileTab] = useState<"questions" | "answers">("questions");
   const [scale, setScale] = useState<number>(100);
+
+  const [pdfPages, setPdfPages] = useState<string[]>([]);
+  const [isRenderingPdf, setIsRenderingPdf] = useState(false);
+
+  useEffect(() => {
+    if (!answerSheetBase64 || !answerSheetBase64.mimeType.includes('pdf')) {
+      setPdfPages([]);
+      return;
+    }
+
+    const loadPdfPages = async () => {
+      setIsRenderingPdf(true);
+      try {
+        const binaryString = window.atob(answerSheetBase64.base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        let pdfjsLib = (window as any).pdfjsLib;
+        let retries = 0;
+        while (!pdfjsLib && retries < 20) {
+          await new Promise(r => setTimeout(r, 100));
+          pdfjsLib = (window as any).pdfjsLib;
+          retries++;
+        }
+        
+        if (!pdfjsLib) throw new Error("pdfjsLib is not loaded after waiting");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+        const loadingTask = pdfjsLib.getDocument({ data: bytes });
+        const pdf = await loadingTask.promise;
+        const numPages = pdf.numPages;
+        const pageImages = [];
+
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2.0 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          if (context) {
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            pageImages.push(canvas.toDataURL('image/jpeg', 0.9));
+          }
+        }
+        setPdfPages(pageImages);
+      } catch (e) {
+        console.error("Failed to render PDF pages:", e);
+      } finally {
+        setIsRenderingPdf(false);
+      }
+    };
+
+    loadPdfPages();
+  }, [answerSheetBase64]);
 
   const handleZoomIn = () => setScale(s => Math.min(s + 10, 200));
   const handleZoomOut = () => setScale(s => Math.max(s - 10, 50));
@@ -67,19 +125,7 @@ export function MappingArea() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-3 sm:mt-0">
-                <button 
-                  onClick={() => {
-                    mappedData.forEach(m => {
-                      if (m.finalMarks === undefined && m.aiSuggestedMarks !== undefined) {
-                        useMappingStore.getState().updateMappedItem(m.question.id, { finalMarks: m.aiSuggestedMarks, teacherEdited: false });
-                      }
-                    });
-                    toast.success("Accepted all AI suggestions");
-                  }}
-                  className="flex-1 sm:flex-none text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
-                >
-                  Accept All Suggestions
-                </button>
+
                 <button 
                   onClick={async () => {
                     const toastId = toast.loading("Generating PDF Report...");
@@ -119,10 +165,10 @@ export function MappingArea() {
                     className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : q.id)}
                   >
-                    <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold text-sm ${
+                    <div className={`min-w-[32px] h-8 px-2 flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold text-sm whitespace-nowrap ${
                       isExpanded ? 'bg-[#FF5623]' : 'bg-gray-500'
                     }`}>
-                      {q.number || (index + 1)}
+                      {formatQuestionNumber(q, index)}
                     </div>
                     
                     <div className="flex-1 text-[14px] sm:text-[15px] text-gray-800 leading-snug pt-1">
@@ -240,7 +286,7 @@ export function MappingArea() {
               
               <div className="flex items-center bg-[#4A4A4A] rounded-lg border border-[#5A5A5A] overflow-hidden">
                 <button onClick={() => toast("Previous page coming soon")} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronLeft size={14} /></button>
-                <span className="px-2 text-xs font-medium whitespace-nowrap">Page 1 of 1</span>
+                <span className="px-2 text-xs font-medium whitespace-nowrap">Page 1 of {pdfPages.length || 1}</span>
                 <button onClick={() => toast("Next page coming soon")} className="px-2 py-1.5 hover:bg-[#5A5A5A] transition-colors"><ChevronRight size={14} /></button>
               </div>
             </div>
@@ -253,22 +299,71 @@ export function MappingArea() {
              }}>
                 {answerSheetBase64 ? (
                   answerSheetBase64.mimeType.includes('pdf') ? (
-                    <div className="w-full min-h-[1200px] flex flex-col relative z-20">
-                      <object 
-                        data={`data:application/pdf;base64,${answerSheetBase64.base64}`} 
-                        type="application/pdf" 
-                        className="w-full h-full min-h-[1200px]"
-                      >
-                        <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500 p-8 text-center">
-                          <p>Your browser doesn't support embedded PDFs. <a href={`data:application/pdf;base64,${answerSheetBase64.base64}`} download="answer_sheet.pdf" className="text-[#FF5623] underline">Download it here</a>.</p>
+                    <div className="w-full flex flex-col relative z-20">
+                      {isRenderingPdf ? (
+                        <div className="w-full min-h-[800px] flex items-center justify-center text-gray-400 bg-[#F5F2EA]">
+                          Rendering PDF Pages...
                         </div>
-                      </object>
-                      <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded shadow-lg pointer-events-none z-30">
-                        Bounding box overlays are not available for PDFs. Upload images for full bounding box support.
-                      </div>
+                      ) : (
+                        pdfPages.map((pageDataUrl, pageIdx) => (
+                          <div key={`pdf-page-${pageIdx}`} className="relative w-full mb-4 shadow-sm border border-gray-200">
+                            <img src={pageDataUrl} alt={`PDF Page ${pageIdx + 1}`} className="w-full h-auto block" />
+                            {/* Dynamic Highlight Boxes for this Page */}
+                            {mappedData.map((item) => {
+                              if (item.question.id === expandedId && item.answer?.regions) {
+                                return item.answer.regions.map((region, idx) => {
+                                  // region.page is 1-indexed
+                                  if (region.page !== pageIdx + 1) return null;
+                                  return (
+                                    <div 
+                                      key={`${item.question.id}-region-${idx}`}
+                                      className="absolute border-[3px] border-green-500 bg-green-500/10 rounded-sm"
+                                      style={{
+                                        top: `${region.y * 100}%`,
+                                        left: `${region.x * 100}%`,
+                                        width: `${region.width * 100}%`,
+                                        height: `${region.height * 100}%`,
+                                      }}
+                                    >
+                                       <div className="absolute -top-3 -left-3 bg-green-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
+                                         Q{formatQuestionNumber(item.question)}
+                                       </div>
+                                    </div>
+                                  );
+                                });
+                              }
+                              return null;
+                            })}
+                          </div>
+                        ))
+                      )}
                     </div>
                   ) : (
-                    <img src={`data:${answerSheetBase64.mimeType};base64,${answerSheetBase64.base64}`} alt="Answer Sheet" className="w-full h-auto block" />
+                    <div className="w-full relative">
+                      <img src={`data:${answerSheetBase64.mimeType};base64,${answerSheetBase64.base64}`} alt="Answer Sheet" className="w-full h-auto block" />
+                      {/* Dynamic Highlight Boxes for Single Image */}
+                      {mappedData.map((item) => {
+                        if (item.question.id === expandedId && item.answer?.regions) {
+                          return item.answer.regions.map((region, idx) => (
+                            <div 
+                              key={`${item.question.id}-region-${idx}`}
+                              className="absolute border-[3px] border-green-500 bg-green-500/10 rounded-sm"
+                              style={{
+                                top: `${region.y * 100}%`,
+                                left: `${region.x * 100}%`,
+                                width: `${region.width * 100}%`,
+                                height: `${region.height * 100}%`,
+                              }}
+                            >
+                               <div className="absolute -top-3 -left-3 bg-green-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
+                                 Q{formatQuestionNumber(item.question)}
+                               </div>
+                            </div>
+                          ));
+                        }
+                        return null;
+                      })}
+                    </div>
                   )
                 ) : (
                   <div className="w-full min-h-[1200px] bg-[#F5F2EA] flex items-center justify-center text-gray-400">
@@ -276,28 +371,7 @@ export function MappingArea() {
                   </div>
                 )}
                 
-                {/* Dynamic Highlight Boxes */}
-                {(!answerSheetBase64 || !answerSheetBase64.mimeType.includes('pdf')) && mappedData.map((item) => {
-                  if (item.question.id === expandedId && item.answer?.regions) {
-                    return item.answer.regions.map((region, idx) => (
-                      <div 
-                        key={`${item.question.id}-region-${idx}`}
-                        className="absolute border-[3px] border-green-500 bg-green-500/10 rounded-sm"
-                        style={{
-                          top: `${region.y * 100}%`,
-                          left: `${region.x * 100}%`,
-                          width: `${region.width * 100}%`,
-                          height: `${region.height * 100}%`,
-                        }}
-                      >
-                         <div className="absolute -top-3 -left-3 bg-green-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded shadow-sm">
-                           Q{item.question.number}
-                         </div>
-                      </div>
-                    ));
-                  }
-                  return null;
-                })}
+
              </div>
           </div>
         </div>

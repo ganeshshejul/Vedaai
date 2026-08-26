@@ -89,6 +89,33 @@ async function processDocument(doc: { base64: string; mimeType: string }, label:
     return doc;
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function withRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries = 3,
+    baseDelayMs = 2000
+): Promise<T> {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        try {
+            return await operation();
+        } catch (error: any) {
+            attempt++;
+            const status = error?.status || error?.response?.status;
+            // Retry on 503 Service Unavailable or 429 Too Many Requests
+            if ((status === 503 || status === 429 || error?.message?.includes('503')) && attempt < maxRetries) {
+                const delay = baseDelayMs * Math.pow(2, attempt - 1);
+                console.log(`[Gemini API] 503/429 encountered. Retrying attempt ${attempt} in ${delay}ms...`);
+                await sleep(delay);
+                continue;
+            }
+            throw error;
+        }
+    }
+    throw new Error("Max retries exceeded");
+}
+
 export async function POST(req: Request) {
   try {
     const { questionPaper, answerSheet } = await req.json();
@@ -103,26 +130,41 @@ export async function POST(req: Request) {
 
     // Call Gemini to extract and map
     console.log("Calling Gemini 3.1 Pro Preview...");
-    const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: [
-            {
-                role: 'user',
-                parts: [
-                    { text: 'Here is the Question Paper. Extract all the questions, their numbers, and their maximum marks.' },
-                    { inlineData: { data: processedQP.base64, mimeType: processedQP.mimeType } },
-                    { text: 'Here is the Student Answer Sheet. Extract all the answers written by the student. Your goal is to map the student\'s answers to the exact questions from the question paper.' },
-                    { inlineData: { data: processedAS.base64, mimeType: processedAS.mimeType } },
-                    { text: 'Extract and map the questions to answers. Grade the answers according to the question\'s maximum score. Provide bounding box regions for the answers [y_min, x_min, y_max, x_max] converted to standard [x, y, width, height] normalized coordinates (0 to 1). Output as JSON.' }
-                ]
+    
+    const response = await withRetry(() => 
+        ai.models.generateContent({
+            model: 'gemini-3.1-pro-preview',
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        { text: `You are an expert, deterministic document grader. 
+Strict Extraction & Formatting Rules:
+1. The 'number' field must ONLY contain the main integer (e.g., "1"). 
+2. The 'subPart' field must ONLY contain the sub-part letter (e.g., "a", "b"). If a question has NO subpart, you must completely OMIT the subPart field. Do NOT write "null", "undefined", or "none".
+3. Provide bounding box regions for the answers [y_min, x_min, y_max, x_max] converted to standard [x, y, width, height] normalized coordinates (0 to 1).
+
+Strict Grading Rules:
+1. Consistency: Grade strictly and consistently based on the literal text in the student's answer.
+2. No Hallucination: Do not assume or grant marks for knowledge that is not explicitly written.
+3. Accuracy: Ensure the assigned 'aiSuggestedMarks' is a valid number between 0 and the question's 'maxScore'.
+4. Exact Matching: Your goal is to map the student's answers to the exact questions from the question paper.
+
+Here is the Question Paper. Extract all the questions, their numbers, and their maximum marks.` },
+                        { inlineData: { data: processedQP.base64, mimeType: processedQP.mimeType } },
+                        { text: 'Here is the Student Answer Sheet. Extract all the answers written by the student and grade them strictly according to the rules.' },
+                        { inlineData: { data: processedAS.base64, mimeType: processedAS.mimeType } },
+                        { text: 'Output as JSON.' }
+                    ]
+                }
+            ],
+            config: {
+                temperature: 0.0,
+                responseMimeType: 'application/json',
+                responseSchema: extractionSchema
             }
-        ],
-        config: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
-            responseSchema: extractionSchema
-        }
-    });
+        })
+    );
 
     const outputText = response.text;
     console.log("Received Gemini Response.");

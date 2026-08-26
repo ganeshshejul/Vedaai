@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { MappedItem } from '@/store/mappingStore';
+import { formatQuestionNumber } from "./formatQuestion";
 
 // We'll rely on the global window.pdfjsLib loaded via Next.js Script tag
 // to avoid Next.js Turbopack server/browser bundling errors with 'canvas'.
@@ -118,7 +119,7 @@ export const generatePdfReport = async (
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, PAGE_WIDTH - MARGIN - 60, yCursor + 10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, PAGE_WIDTH - MARGIN, yCursor + 10, { align: 'right' });
     
     yCursor += 25;
     
@@ -148,7 +149,8 @@ export const generatePdfReport = async (
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(255, 86, 35); // Vedaai orange
-    doc.text(`Q${q.number}`, MARGIN, yCursor);
+    const qLabel = `Q${formatQuestionNumber(q)}`;
+    doc.text(qLabel, MARGIN, yCursor);
 
     doc.setTextColor(0, 0, 0);
     doc.text(`Score: ${currentScore} / ${q.maxScore}`, PAGE_WIDTH - MARGIN - 30, yCursor);
@@ -158,9 +160,10 @@ export const generatePdfReport = async (
     // Question Text
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    const splitTitle = doc.splitTextToSize(q.text, PAGE_WIDTH - (MARGIN * 2));
-    doc.text(splitTitle, MARGIN, yCursor);
-    yCursor += (splitTitle.length * 5) + 5;
+    const textMaxWidth = PAGE_WIDTH - (MARGIN * 2);
+    doc.text(q.text, MARGIN, yCursor, { maxWidth: textMaxWidth });
+    const textDims = doc.getTextDimensions(q.text, { maxWidth: textMaxWidth });
+    yCursor += textDims.h + 5;
 
     // Answer Image Region
     if (item.answer?.regions && item.answer.regions.length > 0 && answerSheet) {
@@ -251,9 +254,11 @@ export const generatePdfReport = async (
       doc.setFont("helvetica", "italic");
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
-      const splitFeedback = doc.splitTextToSize(`Feedback: ${item.aiFeedback}`, PAGE_WIDTH - (MARGIN * 2));
-      doc.text(splitFeedback, MARGIN, yCursor);
-      yCursor += (splitFeedback.length * 5) + 10;
+      const feedbackText = `Feedback: ${item.aiFeedback}`;
+      const fbMaxWidth = PAGE_WIDTH - (MARGIN * 2);
+      doc.text(feedbackText, MARGIN, yCursor, { maxWidth: fbMaxWidth });
+      const fbDims = doc.getTextDimensions(feedbackText, { maxWidth: fbMaxWidth });
+      yCursor += fbDims.h + 10;
     }
 
     // Divider
